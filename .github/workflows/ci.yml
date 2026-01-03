@@ -43,10 +43,38 @@ jobs:
       run: |
         echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-    - name: Build Docker image
+    - name: Read base version
       run: |
-        docker build -t ghcr.io/${{ env.REPO_LOWER }}/flask-app:latest .
+        BASE_VERSION=$(cat VERSION)
+        echo "BASE_VERSION=$BASE_VERSION" >> $GITHUB_ENV
 
-    - name: Push Docker image
+    - name: Generate semantic version
       run: |
+        PATCH=${{ github.run_number }}
+        SEMVER="${BASE_VERSION%.*}.$PATCH"
+        echo "SEMVER=$SEMVER" >> $GITHUB_ENV
+        echo "Version generated: $SEMVER"
+        
+    - name: Build Docker image (SemVer + latest)
+      run: |
+        docker build \
+          -t ghcr.io/${{ env.REPO_LOWER }}/flask-app:${{ env.SEMVER }} \
+          -t ghcr.io/${{ env.REPO_LOWER }}/flask-app:latest .
+
+    - name: Push Docker images
+      run: |
+        docker push ghcr.io/${{ env.REPO_LOWER }}/flask-app:${{ env.SEMVER }}
         docker push ghcr.io/${{ env.REPO_LOWER }}/flask-app:latest
+    
+    - name: Create build artifact
+      run: |
+        echo "Application: Flask CI/CD App" > build-info.txt
+        echo "Version: ${{ env.SEMVER }}" >> build-info.txt
+        echo "Commit: ${{ github.sha }}" >> build-info.txt
+        echo "Build Time: $(date)" >> build-info.txt
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: flask-app-${{ env.SEMVER }}
+        path: build-info.txt
