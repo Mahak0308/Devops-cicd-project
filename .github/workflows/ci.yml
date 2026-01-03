@@ -35,10 +35,14 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Convert repository name to lowercase
+      run: |
+        echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
     - name: Build Docker image
       run: |
-        docker build -t ghcr.io/${{ github.repository }}/flask-app:latest .
+        docker build -t ghcr.io/${{ env.REPO_LOWER }}/flask-app:latest .
 
     - name: Push Docker image
       run: |
-        docker push ghcr.io/${{ github.repository }}/flask-app:latest
+        docker push ghcr.io/${{ env.REPO_LOWER }}/flask-app:latest
