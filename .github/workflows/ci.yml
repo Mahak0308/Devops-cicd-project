@@ -98,3 +98,13 @@ jobs:
           -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
           -Dsonar.sources=.
           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+    
+    - name: Deploy using Docker Compose
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        script: |
+          docker-compose pull
+          docker-compose up -d
