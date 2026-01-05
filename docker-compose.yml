@@ -1,14 +1,7 @@
 version: "3.8"
 
-networks:
-  app-network:
-    driver: bridge
-
 services:
   web:
     image: ghcr.io/mahak0308/devops-cicd-project/flask-app:latest
-    container_name: web
     ports:
       - "5000:5000"
-    networks:
-      - app-network
